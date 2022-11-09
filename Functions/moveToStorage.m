@@ -1,9 +1,14 @@
 % Degrees used in this function is 360/6=60
 
-function [] = moveToStorage(bin, m)
-    firstDegrees = 0;
+function [] = moveToStorage(bin, m, hopper)
+    if (hopper == 0)
+        hopperOffset = 300;
+    else
+        hopperOffset = 0;
+    end
+    ratio = 40;
     binDeg = 360/6;
-    endPosition = bin * binDeg + firstDegrees;
-    moveDegrees(m, endPosition, 30, 3,333);
-
-end
+    endPosition = (bin -1) * binDeg * ratio + hopperOffset;
+    moveDegrees(m, endPosition, 50);
+    
+end     

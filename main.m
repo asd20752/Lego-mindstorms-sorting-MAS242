@@ -3,7 +3,8 @@ addpath("./Functions");
 bins = [0 0 0 0 0 0];
 
 if (exist('myev3', 'var') == 0)
-    myev3 = legoev3("USB");
+    %myev3 = legoev3('WiFi', '10.245.30.70', '00165355da1e');
+    myev3 = legoev3('USB');
 end
 
 drumMotor = motor(myev3, 'D');
@@ -45,23 +46,25 @@ while (1)
     if (buttonPressed == "up")
         if (selected > 1)
             selected = selected - 1;
+            readRotation(drumMotor)
         end
 
     elseif (buttonPressed == "down")
-        if (selected < 9)
+        if (selected < 7)
             selected = selected + 1;
+            readRotation(drumMotor)
         end
 
     elseif (buttonPressed == "center")
         selected
 
         if (selected <= 6)
-            moveToStorage(selected, drumMotor)
+            moveToStorage(selected, drumMotor, 0)
         elseif (selected == 7)
             
-            moveDegrees(drumKickerMotor, 35, 10);
+            moveDegrees(drumKickerMotor, 70, 30);
             
-            moveDegrees(drumKickerMotor, 14, 60);
+            moveDegrees(drumKickerMotor, 0, 50);
         elseif (selected == 8)
             moveDegrees (drumKickerMotor, 90, 15);
         elseif (selected == 9)
