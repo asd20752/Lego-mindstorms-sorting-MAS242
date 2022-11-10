@@ -1,10 +1,8 @@
-function [color, size] = detectBlock(colorSensor, lightSensor)
+function [color] = detectBlock(colorSensor)
     c = readColor(colorSensor);
-    l = readLightIntensity(lightSensor);
 
     if (c == "none")
         color = 0;
-        size = 0;
     else
         % Change to match a actual neutral value
         if (l > 100)
