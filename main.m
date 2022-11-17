@@ -1,4 +1,4 @@
-addpath("./Functions");
+ addpath("./Functions");
 % [Blue-S Yellow-S Red-S Blue-L Yellow-L Red-L]
 % colors = ["green" "red" "yellow"];
 bins = [0 0 0 0 0 0];
@@ -33,7 +33,7 @@ while (1)
     writeLCD(myev3, 'Large - Yellow', 6, 3);
     writeLCD(myev3, 'Push out', 7, 3);
     writeLCD(myev3, 'Sort', 8, 3);
-    writeLCD(myev3, 'Move -90deg', 9, 3);
+    writeLCD(myev3, 'Reset', 9, 3);
     % % Write color
     % writeLCD(myev3, colors(1), 1, 11);
     % writeLCD(myev3, colors(1), 2, 11);
@@ -59,7 +59,7 @@ while (1)
 
     elseif (buttonPressed == "down")
 
-        if (selected < 8)
+        if (selected < 9)
             selected = selected + 1;
             readRotation(drumMotor)
         end
@@ -97,9 +97,13 @@ while (1)
                 inside = 0;
 
                 while (sensing)
-                    btn = buttonPress(myev3);
-                    if (btn == 'center')
+                    if(readButton(myev3, 'center'))
+                        stop(drumMotor);
+                        stop(feedKickerMotor);
+                        stop(vibrateMotor);
+                        stop(drumKickerMotor);
                         sensing = 0;
+                        sorting = 0;
                     end
                     kickRotation = mod(readRotation(feedKickerMotor), 360);
 
@@ -195,7 +199,9 @@ while (1)
             end
 
         elseif (selected == 9)
-            moveDegrees (drumKickerMotor, -90, 15);
+            moveDegrees(drumMotor, 0, 50);
+            % moveDegrees(feedKickerMotor, 0, 20);
+            moveDegrees(drumKickerMotor, 0, 20);
         end
 
     end
