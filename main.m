@@ -1,54 +1,64 @@
 addpath("./Functions");
 % [Blue-S Yellow-S Red-S Blue-L Yellow-L Red-L]
+% colors = ["green" "red" "yellow"];
 bins = [0 0 0 0 0 0];
 totalBlocksSorted = 0;
+
 if (exist('myev3', 'var') == 0)
-    %myev3 = legoev3('WiFi', '10.245.30.70', '00165355da1e');
     myev3 = legoev3('USB');
 end
 
 drumMotor = motor(myev3, 'D');
-%vibrateMotor = motor(myev3, 'B');
-feedKickerMotor = motor(myev3, 'C');
+vibrateMotor = motor(myev3, 'C');
+feedKickerMotor = motor(myev3, 'B');
 drumKickerMotor = motor(myev3, 'A');
 
 sensorColor = colorSensor(myev3, 1);
 %lightSensor = colorSensor(myev3, '2');
 
-%zeroMotor(drumMotor)33;
+%zeroMotor(drumMotor);
 %vibrate(vibrateMotor);
 
 selected = 8;
 
 while (1)
-        clearLCD(myev3);
-        writeLCD(myev3, 'X', selected, 1);
-        % The blocks avalible
-        writeLCD(myev3, 'Large - Red', 1, 3);
-        writeLCD(myev3, 'Small - Red', 2, 3);
-        writeLCD(myev3, 'Large - Green', 3, 3);
-        writeLCD(myev3, 'Small - Green', 4, 3);
-        writeLCD(myev3, 'Large - Yellow', 5, 3);
-        writeLCD(myev3, 'Small - Yellow', 6, 3);
-        writeLCD(myev3, 'Push out', 7, 3);
-        writeLCD(myev3, 'Sort', 8, 3);
-        writeLCD(myev3, 'Move -90deg', 9, 3);
-        % Amount of blocks avalible
-        writeLCD(myev3, num2str(bins(1)), 1, 19);
-        writeLCD(myev3, num2str(bins(2)), 2, 19);
-        writeLCD(myev3, num2str(bins(3)), 3, 19);
-        writeLCD(myev3, num2str(bins(4)), 4, 19);
-        writeLCD(myev3, num2str(bins(5)), 5, 19);
-        writeLCD(myev3, num2str(bins(6)), 6, 19);
+    clearLCD(myev3);
+    writeLCD(myev3, 'X', selected, 1);
+    % The blocks avalible
+    writeLCD(myev3, 'Small - Green', 1, 3);
+    writeLCD(myev3, 'Small - Red', 2, 3);
+    writeLCD(myev3, 'Small - Yellow', 3, 3);
+    writeLCD(myev3, 'Large - Green', 4, 3);
+    writeLCD(myev3, 'Large - Red', 5, 3);
+    writeLCD(myev3, 'Large - Yellow', 6, 3);
+    writeLCD(myev3, 'Push out', 7, 3);
+    writeLCD(myev3, 'Sort', 8, 3);
+    writeLCD(myev3, 'Move -90deg', 9, 3);
+    % % Write color
+    % writeLCD(myev3, colors(1), 1, 11);
+    % writeLCD(myev3, colors(1), 2, 11);
+    % writeLCD(myev3, colors(2), 3, 11);
+    % writeLCD(myev3, colors(2), 4, 11);
+    % writeLCD(myev3, colors(3), 5, 11);
+    % writeLCD(myev3, colors(3), 6, 11);
+    % Amount of blocks avalible
+    writeLCD(myev3, num2str(bins(1)), 1, 19);
+    writeLCD(myev3, num2str(bins(2)), 2, 19);
+    writeLCD(myev3, num2str(bins(3)), 3, 19);
+    writeLCD(myev3, num2str(bins(4)), 4, 19);
+    writeLCD(myev3, num2str(bins(5)), 5, 19);
+    writeLCD(myev3, num2str(bins(6)), 6, 19);
     buttonPressed = buttonPress(myev3);
 
     if (buttonPressed == "up")
+
         if (selected > 1)
             selected = selected - 1;
             readRotation(drumMotor)
         end
 
     elseif (buttonPressed == "down")
+
         if (selected < 8)
             selected = selected + 1;
             readRotation(drumMotor)
@@ -59,44 +69,57 @@ while (1)
 
         if (selected <= 6)
             moveToStorage(selected, drumMotor, 0)
+            moveDegrees(drumKickerMotor, 70, 100);
+            moveDegrees(drumKickerMotor, 0, 50);
+            bins(selected) = bins(selected) -1;
             %Kick out block manualy
         elseif (selected == 7)
-            
-            moveDegrees(drumKickerMotor, 70, 30);
-            
+            moveDegrees(drumKickerMotor, 70, 70);
             moveDegrees(drumKickerMotor, 0, 50);
-        % Sorting
+            % Sorting
         elseif (selected == 8)
             % moveDegrees (drumKickerMotor, 90, 15);
-            %vibrate(vibrateMotor);
+            % vibrate(vibrateMotor);
+            start(vibrateMotor);
+            vibrateMotor.Speed = 80;
             sorting = 1;
-            feedKickerMotor.Speed = 5;
+            feedKickerMotor.Speed = 20;
 
             while (sorting)
-                feedKickerMotor.Speed = 5;
+                feedKickerMotor.Speed = 20;
+                start(vibrateMotor);
                 start(feedKickerMotor);
                 sensing = 1;
-                resetRotation(feedKickerMotor);
                 sensingStartTime = getTime();
                 sensedColor = 'none';
                 % 0: Small, 1: large
                 sensedSize = 0;
+                inside = 0;
 
                 while (sensing)
+                    btn = buttonPress(myev3);
+                    if (btn == 'center')
+                        sensing = 0;
+                    end
+                    kickRotation = mod(readRotation(feedKickerMotor), 360);
 
-                    if (readRotation(feedKickerMotor) > 360)
+                    if (kickRotation < 300 && kickRotation > 60)
+                        inside = 1;
+                    end
+
+                    if (kickRotation > 300 && inside)
                         stop(feedKickerMotor);
                     end
 
-                    if (timeBetween(getTime(), sensingStartTime) > 2)
+                    if (timeBetween(getTime(), sensingStartTime) > 5)
                         sensing = 0;
                     end
 
                     curCol = readColor(sensorColor);
 
-                    if (curCol == "blue" || curCol == "yellow" || curCol == "red")
-                        sensedColor = curCol
-                        sensedSize = 1
+                    if (curCol == "red" || curCol == "green" || curCol == "yellow")
+                        sensedColor = curCol;
+                        sensedSize = 1;
                     else
                         sensedSize = 0;
 
@@ -105,12 +128,22 @@ while (1)
                     deltaTime = timeBetween(sensingStartTime, getTime());
                 end
 
+                clearLCD(myev3);
+                writeLCD(myev3, num2str(totalBlocksSorted), 3, 4);
+                writeLCD(myev3, sensedColor, 6, 3);
+
+                if (sensedSize == 0)
+                    writeLCD(myev3, 'Small', 7, 3);
+                else
+                    writeLCD(myev3, 'Large', 7, 3);
+                end
+
                 % Turn drum to the drum corresponding to the seen block
                 % [Blue-S Yellow-S Red-S Blue-L Yellow-L Red-L]
-                if (sensedColor == "blue" || sensedColor == "yellow" || sensedColor == "red")
-
+                if (sensedColor == "red" || sensedColor == "green" || sensedColor == "yellow")
+                    stop(vibrateMotor);
                     switch sensedColor
-                        case 'blue'
+                        case 'green'
 
                             if (sensedSize == 0)
                                 moveToStorage(1, drumMotor, 1);
@@ -120,7 +153,7 @@ while (1)
                                 bins(4) = bins(4) +1;
                             end
 
-                        case 'yellow'
+                        case 'red'
 
                             if (sensedSize == 0)
                                 moveToStorage(2, drumMotor, 1);
@@ -130,7 +163,7 @@ while (1)
                                 bins(5) = bins(5) +1;
                             end
 
-                        case 'red'
+                        case 'yellow'
 
                             if (sensedSize == 0)
                                 moveToStorage(3, drumMotor, 1);
@@ -145,14 +178,22 @@ while (1)
                     totalBlocksSorted = totalBlocksSorted +1;
                 end
 
+                if (totalBlocksSorted > 10)
+                    start(feedKickerMotor);
+                    rotating = 1;
+                    while(rotating)
+                        kickRotation = mod(readRotation(feedKickerMotor), 360);
 
-
-                if (totalBlocksSorted == 10)
-                    %stop(vibrateMotor);
+                        if (kickRotation < 300 && kickRotation > 60)
+                            rotating = 0;
+                        end
+                    end
+                    stop(vibrateMotor);
                     sorting = 0;
                 end
 
             end
+
         elseif (selected == 9)
             moveDegrees (drumKickerMotor, -90, 15);
         end
@@ -160,7 +201,3 @@ while (1)
     end
 
 end
-
-%switch(buttonPressed)
-
-%end
